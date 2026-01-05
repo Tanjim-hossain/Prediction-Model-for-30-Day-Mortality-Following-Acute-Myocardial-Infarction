@@ -13,7 +13,6 @@ This tool helps answer the question: **"Which patients need the most aggressive 
 The model identified the most critical risk factors for patient death. The chart below shows the "Odds Ratios"—essentially, how much higher the risk is if a patient has these features.
 
 ![Top Predictors](predictors.png)
-*(Note: If the image above doesn't load, please ensure 'predictors.png' is uploaded to the repo)*
 
 **Interpretation:**
 Based on the analysis, the three strongest warning signs are:
@@ -27,7 +26,6 @@ Based on the analysis, the three strongest warning signs are:
 We tested the model using a technique called "Cross-Validation" to ensure it works on new, unseen patients.
 
 ![ROC Curve](roc_curve.png)
-*(Note: If the image above doesn't load, please ensure 'roc_curve.png' is uploaded to the repo)*
 
 **Interpretation:**
 * **The Metric:** The model achieved an **AUC of 0.76**.
