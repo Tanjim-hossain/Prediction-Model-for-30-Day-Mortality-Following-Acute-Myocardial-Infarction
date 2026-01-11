@@ -50,7 +50,7 @@ We tested the model using a technique called "Cross-Validation" to ensure it wor
     4.  **Validation:** Repeated Stratified K-Fold Cross-Validation.
 
 ## 📄 Full Report
-For a deep dive into the statistical methodology and TRIPOD validation standards, please read the [Technical Validation Report](Project_Report.pdf).
+For a deep dive into the statistical methodology and TRIPOD validation standards, please read the [Technical Validation Report](Technical_Validation_Report.pdf).
 
 ---
 **Author:** Tanjim Hossain | Hasselt University
