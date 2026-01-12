@@ -52,5 +52,9 @@ We tested the model using a technique called "Cross-Validation" to ensure it wor
 ## 📄 Full Report
 For a deep dive into the statistical methodology and TRIPOD validation standards, please read the [Technical Validation Report](Technical_Validation_Report.pdf).
 
+## 🚀 How to Run
+1. Clone the repo.
+2. Install requirements: `pip install pandas numpy scikit-learn matplotlib`
+3. Run the Jupyter Notebook.
 ---
 **Author:** Tanjim Hossain | Hasselt University
