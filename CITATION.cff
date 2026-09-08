@@ -15,4 +15,4 @@ keywords:
   - nested cross-validation
   - calibration
   - decision curve analysis
-license: "NOASSERTION"
+license: MIT
