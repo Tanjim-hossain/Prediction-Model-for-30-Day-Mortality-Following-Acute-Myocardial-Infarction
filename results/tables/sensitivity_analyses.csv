@@ -1,0 +1,4 @@
+Specification,ROC-AUC,PR-AUC,Brier,Log loss
+Primary ridge,0.7881,0.2783,0.0556,0.2070
+Killip categorical,0.7786,0.2233,0.0567,0.2103
+Missing indicators added,0.7889,0.2787,0.0556,0.2069
