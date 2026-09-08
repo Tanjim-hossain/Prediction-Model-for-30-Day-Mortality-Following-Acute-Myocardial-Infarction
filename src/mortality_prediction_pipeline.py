@@ -1,4 +1,4 @@
-"""Reproducible ISDS Option A analysis pipeline.
+"""Reproducible 30-day mortality prediction pipeline.
 
 Prediction of 30-day mortality after acute myocardial infarction.
 
@@ -8,9 +8,9 @@ ablations, calibration, bootstrap uncertainty, sensitivity analyses, threshold s
 decision-curve analysis, final-model coefficients, and held-out permutation importance.
 
 Run from the repository root:
-    python src/isds_option_a_pipeline.py --data ami_patient_data.csv --output outputs/current
+    python src/mortality_prediction_pipeline.py --data ami_patient_data.csv --output outputs/current
 
-The project is an academic/internal-validation exercise and is not a clinical tool.
+The model is internally validated only and is not a clinical decision tool.
 """
 from __future__ import annotations
 
