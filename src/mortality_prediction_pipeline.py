@@ -757,7 +757,7 @@ def run(data_path: Path, output_dir: Path) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the full ISDS Option A prediction workflow.")
+    parser = argparse.ArgumentParser(description="Run the complete 30-day mortality prediction workflow.")
     parser.add_argument("--data", type=Path, default=Path("ami_patient_data.csv"))
     parser.add_argument("--output", type=Path, default=Path("outputs/current"))
     return parser.parse_args()
