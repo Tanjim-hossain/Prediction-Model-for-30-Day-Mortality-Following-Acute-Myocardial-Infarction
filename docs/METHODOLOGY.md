@@ -1,27 +1,27 @@
-# Methodology — Current ISDS Option A Analysis
+# Methodology
 
 ## Objective
 
-Develop and internally validate a multivariable model for predicting 30-day mortality after acute myocardial infarction in the supplied 785-patient dataset. The analysis follows the Option A assignment requirements and uses TRIPOD elements 8–20 as a reporting guide.
+Develop and internally validate a multivariable model for predicting 30-day mortality after acute myocardial infarction.
 
-This is a **prediction-modelling** analysis. Predictor effects are therefore interpreted as predictive associations, not causal effects.
+This is a prediction-modelling analysis. Predictor coefficients and importance measures are interpreted as predictive associations, not causal effects.
 
-## 1. Data audit and cleaning
+## Data audit and deterministic cleaning
 
-The raw dataset is preserved conceptually as the source record. Cleaning is deterministic and limited to issues supported by the assignment dictionary or obvious unit-entry errors:
+The analysis preserves the source data and applies only explicit, auditable corrections:
 
-- `Hypothension` → `Hypotension` (header correction).
-- `Hyperthension` → `Hypertension` (header correction).
-- `Hypotension = Unknown` → missing.
-- `Killip_class = -1` → missing because valid classes are 1–4.
-- `Height = 1.75` → 175 cm.
-- `Height = 1690` → 169 cm.
+- `Hypothension` → `Hypotension`
+- `Hyperthension` → `Hypertension`
+- `Hypotension = Unknown` → missing
+- `Killip_class = -1` → missing
+- `Height = 1.75` → 175 cm
+- `Height = 1690` → 169 cm
 
-No patient is deleted. After recoding there are 24 missing predictor cells and no exact duplicate rows.
+No patient is deleted. After recoding there are 24 missing predictor cells.
 
-## 2. Predictor representation
+## Predictor representation
 
-Primary continuous/ordinal block:
+Continuous / ordinal:
 
 - Age
 - Killip class
@@ -29,7 +29,7 @@ Primary continuous/ordinal block:
 - Weight
 - ST-elevation leads
 
-Binary predictors:
+Binary:
 
 - Gender
 - Diabetes
@@ -43,135 +43,108 @@ Binary predictors:
 - Family history of MI
 - Time to relief >1 hour
 
-Nominal categorical predictor:
+Categorical:
 
-- Smoking (three levels)
+- Smoking
 
-Killip class is treated as ordinal in the primary specification. A categorical representation is tested as a sensitivity analysis.
+Killip class is ordinal in the primary analysis and categorical in a sensitivity analysis.
 
-## 3. Leakage-safe preprocessing
+## Leakage-safe preprocessing
 
-Every transformation that can learn from the data is fitted inside the corresponding training fold:
+All learned transformations are estimated within training folds:
 
 - continuous/ordinal: median imputation + standardisation;
 - binary: most-frequent-value imputation;
 - smoking: most-frequent-value imputation + one-hot encoding;
-- random oversampling, when tested: training folds only.
+- oversampling: training folds only.
 
-No global imputation, scaling, encoding or resampling is fitted before validation.
+## Validation design
 
-## 4. Validation design
+- outer loop: 5 stratified folds × 5 repeats;
+- inner loop: 4 stratified folds;
+- tuning criterion: log loss;
+- seed: 2026.
 
-The primary evaluation uses repeated nested cross-validation:
+Preprocessing, resampling, tuning and fitting are repeated from scratch inside each training split.
 
-- outer loop: 5 stratified folds × 5 repeats = 25 held-out folds;
-- inner loop: 4 stratified folds inside each outer training sample;
-- hyperparameter selection criterion: log loss;
-- preprocessing and model fitting are repeated from scratch inside each training split.
+## Model development
 
-Each patient receives one genuine out-of-fold probability per repeat. The five probabilities are averaged for patient-level headline metrics. Repeat-specific metrics are retained to assess split-to-split stability.
+The full analysis evaluates:
 
-## 5. Candidate models
+- Elastic Net logistic regression;
+- ridge logistic regression;
+- standard logistic regression;
+- Random Forest;
+- Gradient Boosting;
+- intercept-only reference.
 
-The common internal-validation framework compares:
+The Elastic Net grid is:
 
-1. ridge-penalised logistic regression;
-2. standard unpenalised logistic regression;
-3. Random Forest;
-4. Gradient Boosting;
-5. intercept-only prevalence reference.
+- `C ∈ {0.01, 0.1, 1}`;
+- `l1_ratio ∈ {0, 0.25, 0.5, 0.75, 1}`.
 
-The original penalised search is elastic net with:
+Twenty of 25 outer folds select `C = 0.1` and `l1_ratio = 0`, supporting the ridge endpoint.
 
-- `C ∈ {0.01, 0.1, 1}`
-- `L1-ratio ∈ {0, 0.25, 0.5, 0.75, 1}`
+## Class-imbalance experiments
 
-Twenty of 25 outer folds select `C = 0.1` and `L1-ratio = 0`, supporting the ridge/L2 endpoint. The final penalised family is therefore implemented as ridge logistic regression with `lbfgs`.
-
-No univariable p-value screen is used. Regularisation and held-out predictive performance control model complexity.
-
-## 6. Class-imbalance ablation
-
-Three otherwise matched ridge specifications are compared:
+Matched ridge variants compare:
 
 - no rebalancing;
-- `class_weight="balanced"`;
+- balanced class weights;
 - random oversampling.
 
-The purpose is to test whether rebalancing improves *held-out probability prediction*, not to assume that rare outcomes automatically require resampling.
+The choice is based on held-out predictive performance.
 
-## 7. Performance measures
+## Performance metrics
 
 Discrimination:
 
 - ROC-AUC
 - PR-AUC
 
-Probability accuracy:
+Probability quality:
 
 - Brier score
 - log loss
 
 Calibration:
 
-- calibration intercept (ideal 0)
-- calibration slope (ideal 1)
-- observed vs mean predicted event rate
+- intercept
+- slope
+- observed versus mean predicted risk
 - calibration curves
 
-Rare-outcome accuracy is not used as a primary metric.
+## Uncertainty
 
-## 8. Uncertainty
+The final held-out ridge predictions are resampled 2,000 times at patient level to estimate 95% bootstrap intervals for ROC-AUC, PR-AUC, Brier score and log loss.
 
-For the final ridge model, 95% uncertainty intervals for ROC-AUC, PR-AUC, Brier score and log loss are estimated from 2,000 patient-level bootstrap resamples of the final internally validated out-of-fold predictions.
+## Sensitivity analyses
 
-These intervals primarily quantify patient-sampling uncertainty conditional on the preserved internal-validation predictions; they do not capture every component of model-selection uncertainty.
+- ordinal versus categorical Killip class;
+- imputation only versus explicit missingness indicators.
 
-## 9. Sensitivity analyses
+## Threshold and decision-curve analysis
 
-Two prespecified sensitivity analyses are retained:
+Illustrative thresholds of 5%, 10%, 15% and 20% are used to report sensitivity, specificity, PPV, NPV and proportion flagged.
 
-- Killip class encoded categorically instead of ordinally;
-- explicit missingness indicators added to the primary preprocessing pipeline.
+Decision-curve net benefit is evaluated over a 1%–30% threshold range.
 
-The simpler primary specification is retained unless the alternative meaningfully improves held-out performance.
+## Interpretation
 
-## 10. Threshold analysis and decision curves
+The final ridge model is refitted on all available patients with `C = 0.1`.
 
-Illustrative risk thresholds of 5%, 10%, 15% and 20% are used to report:
+Interpretation uses:
 
-- sensitivity;
-- specificity;
-- PPV;
-- NPV;
-- proportion classified high risk.
+- shrunk coefficients;
+- odds ratios;
+- outer-fold raw-predictor permutation importance.
 
-The thresholds are not optimized on the same data and are not treatment recommendations.
+Permutation importance is calculated in held-out folds with 20 shuffles per predictor per outer split.
 
-Decision-curve analysis evaluates net benefit over a 1–30% threshold range relative to treat-all and treat-none strategies.
+## Model packaging
 
-## 11. Interpretation
+The final preprocessing-plus-model pipeline is serialized with `joblib`, and model metadata are exported to JSON.
 
-The final ridge model is refitted to all 785 patients using the modal tuned `C = 0.1`.
+## Full computational record
 
-- Coefficients and odds ratios are reported descriptively.
-- Continuous/ordinal coefficients refer to standardized predictors.
-- Raw-predictor permutation importance is evaluated in held-out outer folds; each predictor is shuffled repeatedly while the fold-specific model remains fixed.
-- Importance is primarily the increase in held-out log loss after permutation.
-
-Neither coefficients nor permutation importance establish causal effects.
-
-## 12. Reproducibility
-
-The current source implementation is `src/isds_option_a_pipeline.py`. It writes auditable tables, OOF predictions, tuning records, figures, final model metadata and a serialized full-data ridge pipeline to a user-specified output directory.
-
-Key fixed settings:
-
-- seed: 2026;
-- outer CV: 5 folds × 5 repeats;
-- inner CV: 4 folds;
-- tuning metric: log loss;
-- final ridge `C`: 0.1;
-- class rebalancing: none;
-- bootstrap repetitions: 2,000;
-- permutation repetitions: 20 per predictor per outer split.
+See `../notebooks/01_Complete_Executed_Analysis.ipynb` for all executed code, outputs, figures, assertions and model-packaging steps.
