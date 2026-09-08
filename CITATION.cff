@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it as below."
+title: "30-Day Mortality Prediction after Acute Myocardial Infarction"
+type: software
+authors:
+  - family-names: "Hossain"
+    given-names: "Tanjim"
+version: 1.0.0
+date-released: 2026-09-08
+repository-code: "https://github.com/Tanjim-hossain/ami-30day-mortality-prediction"
+keywords:
+  - prediction modelling
+  - acute myocardial infarction
+  - ridge logistic regression
+  - nested cross-validation
+  - calibration
+license: "NOASSERTION"

@@ -1,0 +1,9 @@
+[project]
+name = "ami-30day-mortality-prediction"
+version = "1.0.0"
+description = "Internally validated 30-day mortality prediction after acute myocardial infarction."
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

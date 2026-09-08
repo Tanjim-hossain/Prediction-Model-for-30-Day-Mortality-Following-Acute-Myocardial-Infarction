@@ -1,0 +1,5 @@
+Risk threshold,Ridge net benefit,Treat-all net benefit,Treat-none net benefit
+0.05,0.0335,0.0171,0.0000
+0.10,0.0181,-0.0375,0.0000
+0.15,0.0131,-0.0985,0.0000
+0.20,0.0051,-0.1672,0.0000

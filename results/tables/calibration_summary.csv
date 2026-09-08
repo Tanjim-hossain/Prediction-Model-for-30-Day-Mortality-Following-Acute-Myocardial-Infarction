@@ -1,0 +1,5 @@
+Model,Calibration intercept,Calibration slope,Mean predicted risk,Observed event rate,Brier score
+Ridge logistic,0.1277,1.0580,0.0663,0.0662,0.0556
+Standard logistic,-0.5851,0.7251,0.0673,0.0662,0.0558
+Random Forest,0.1368,1.0716,0.0674,0.0662,0.0564
+Gradient Boosting,0.0032,0.9995,0.0660,0.0662,0.0571
