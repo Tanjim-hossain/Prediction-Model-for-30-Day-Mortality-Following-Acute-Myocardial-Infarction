@@ -17,7 +17,7 @@
 
 ## Intended use
 
-Research and portfolio demonstration of probability-based prediction modelling, internal validation, calibration, uncertainty analysis and reproducible model packaging.
+Research and technical demonstration of probability-based prediction modelling, internal validation, calibration, uncertainty analysis and reproducible model packaging.
 
 ## Out-of-scope use
 
@@ -50,7 +50,7 @@ The Elastic Net development search selected `C = 0.1, l1_ratio = 0` in 20 of 25 
 
 ## Packaging
 
-The complete notebook serializes the fitted preprocessing-plus-model pipeline with `joblib` and writes accompanying model metadata.
+The complete notebook serializes the fitted preprocessing-plus-model pipeline with `joblib` and writes accompanying model metadata. The repository intentionally documents this as **model packaging / deployment readiness**, not production deployment.
 
 ## Interpretation warning
 
