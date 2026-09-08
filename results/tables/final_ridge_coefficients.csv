@@ -1,0 +1,19 @@
+Predictor,Coefficient,Odds ratio
+Age,0.6554,1.9258
+Heart_rate,0.4691,1.5985
+Time_To_Relief,0.3208,1.3783
+Previous_myocardial_infarction,0.3139,1.3687
+Killip_class,0.3072,1.3596
+Anterior_infarct_location,0.2750,1.3165
+Gender,-0.2190,0.8033
+Weight,-0.2167,0.8052
+Diabetes,0.2082,1.2315
+Hypotension,0.1742,1.1903
+Height,-0.1366,0.8723
+Family_history_of_MI,-0.1230,0.8843
+Smoking_current_vs_never,0.0905,1.0947
+Smoking_ex_vs_never,0.0850,1.0887
+Hypertension,0.0842,1.0879
+ST_elevation_leads,-0.0368,0.9638
+Previous_angina_pectoris,0.0205,1.0208
+Hypercholesterolaemia,0.0087,1.0088
