@@ -24,8 +24,16 @@ jobs:
 
       - name: Syntax check
         run: |
+          python -m py_compile src/mortality_prediction_pipeline.py
           python -m py_compile src/isds_option_a_pipeline.py
           python -m py_compile src/elastic_net_screen.py
+          python -m py_compile tools/audit_complete_notebook.py
 
       - name: Unit tests
         run: pytest -q
+
+      - name: Complete notebook integrity check
+        if: ${{ hashFiles('notebooks/01_Complete_Executed_Analysis.ipynb') != '' }}
+        run: |
+          python tools/audit_complete_notebook.py \
+            notebooks/01_Complete_Executed_Analysis.ipynb

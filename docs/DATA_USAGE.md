@@ -1,9 +1,9 @@
-# Dataset provenance and reuse note
+# Dataset Use and Provenance Note
 
-The analysis uses the dataset supplied for the 2025–2026 *Inference for Statistics and Data Science* Option A take-home assignment at Hasselt University.
+The repository includes the AMI dataset used to reproduce the analysis.
 
-The repository uses the data for an academic prediction-modelling project. No independent licence for the underlying dataset is asserted here. Anyone reusing or redistributing the dataset should verify that they have the appropriate permission from the original data provider/course source.
+The dataset is treated as a research input for this prediction-modelling project. This repository does not assert an independent licence over the underlying data. Anyone redistributing or reusing the dataset should verify that they have the appropriate rights to do so.
 
-The modelling repository is not a clinical registry and should not be interpreted as a source of contemporary epidemiological estimates.
+The file should not be interpreted as a contemporary clinical registry or a source of population-level epidemiological estimates.
 
-For variable definitions and the deterministic cleaning rules used in the project, see [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md).
+For variable definitions and deterministic cleaning rules, see `DATA_DICTIONARY.md`.
