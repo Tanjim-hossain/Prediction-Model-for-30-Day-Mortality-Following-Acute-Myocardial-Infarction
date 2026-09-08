@@ -24,6 +24,7 @@ jobs:
 
       - name: Syntax check
         run: |
+          python -m py_compile src/mortality_prediction_pipeline.py
           python -m py_compile src/isds_option_a_pipeline.py
           python -m py_compile src/elastic_net_screen.py
 
