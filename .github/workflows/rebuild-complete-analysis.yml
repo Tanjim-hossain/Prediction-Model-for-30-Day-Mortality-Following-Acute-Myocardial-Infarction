@@ -5,7 +5,7 @@ on:
     branches:
       - restore-complete-analysis
     paths:
-      - '_payload/full_notebook/part_06.txt'
+      - '_payload/full_notebook/part_40.txt'
 
 permissions:
   contents: write
