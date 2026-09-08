@@ -42,7 +42,7 @@ The repository intentionally preserves the **full executed notebook with all ana
 - **Reproducible workflow notebook:** [`notebooks/02_Reproducible_Workflow.ipynb`](notebooks/02_Reproducible_Workflow.ipynb)  
   Cleaner script-backed notebook for re-running the current workflow.
 
-- **Reusable pipeline:** [`src/isds_option_a_pipeline.py`](src/isds_option_a_pipeline.py)
+- **Reusable pipeline:** [`src/mortality_prediction_pipeline.py`](src/mortality_prediction_pipeline.py)
 
 - **Elastic-net development screen:** [`src/elastic_net_screen.py`](src/elastic_net_screen.py)
 
@@ -324,7 +324,7 @@ For the packaging details and inference boundary, see [`docs/DEPLOYMENT.md`](doc
 │   ├── 01_Complete_Executed_Analysis.ipynb
 │   └── 02_Reproducible_Workflow.ipynb
 ├── src/
-│   ├── isds_option_a_pipeline.py
+│   ├── mortality_prediction_pipeline.py
 │   └── elastic_net_screen.py
 ├── results/
 │   ├── figures/
@@ -371,12 +371,12 @@ Open:
 notebooks/01_Complete_Executed_Analysis.ipynb
 ```
 
-This notebook contains the full executed computational record and preserved outputs.
+This notebook already contains the full executed computational record and preserved outputs.
 
 ### 4. Re-run the reusable pipeline
 
 ```bash
-python src/isds_option_a_pipeline.py \
+python src/mortality_prediction_pipeline.py \
   --data ami_patient_data.csv \
   --output outputs/current
 ```
@@ -429,4 +429,4 @@ pytest -q
 
 **Tanjim Hossain**
 
-Data Science / Statistical Learning portfolio project.
+Data Science / Statistical Learning project.
