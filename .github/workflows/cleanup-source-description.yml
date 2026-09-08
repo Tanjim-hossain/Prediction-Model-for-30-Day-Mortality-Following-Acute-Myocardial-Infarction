@@ -1,0 +1,45 @@
+name: Clean source module description
+
+on:
+  push:
+    branches:
+      - complete-analysis-release
+    paths:
+      - '.github/workflows/cleanup-source-description.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: complete-analysis-release
+          fetch-depth: 0
+
+      - name: Remove remaining course-specific CLI wording
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/mortality_prediction_pipeline.py')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              'Run the full ISDS Option A prediction workflow.',
+              'Run the complete 30-day mortality prediction workflow.',
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+          python -m py_compile src/mortality_prediction_pipeline.py
+
+      - name: Commit source wording cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/mortality_prediction_pipeline.py
+          git rm .github/workflows/cleanup-source-description.yml
+          git commit -m "Use neutral prediction-workflow description"
+          git push origin HEAD:complete-analysis-release
