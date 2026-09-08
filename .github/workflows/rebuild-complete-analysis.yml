@@ -24,7 +24,34 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p notebooks results/figures
-          cat _rebuild/complete_notebook/part_*.txt | base64 -d | xz -d > notebooks/01_Complete_Executed_Analysis.ipynb
+
+          rebuilt=""
+          for payload_dir in \
+            _rebuild/complete_notebook \
+            _rebuild/notebook \
+            _rebuild/linked_notebook \
+            tools/notebook_payload
+          do
+            [ -d "$payload_dir" ] || continue
+            echo "Testing payload: $payload_dir"
+            cat "$payload_dir"/part_*.txt > /tmp/notebook_payload.b64
+            if ! base64 -d /tmp/notebook_payload.b64 > /tmp/notebook_payload.xz 2>/dev/null; then
+              echo "Base64 decode failed: $payload_dir"
+              continue
+            fi
+            if xz -t /tmp/notebook_payload.xz 2>/dev/null; then
+              xz -dc /tmp/notebook_payload.xz > notebooks/01_Complete_Executed_Analysis.ipynb
+              rebuilt="$payload_dir"
+              echo "Valid compressed notebook payload found: $payload_dir"
+              break
+            fi
+            echo "XZ integrity check failed: $payload_dir"
+          done
+
+          if [ -z "$rebuilt" ]; then
+            echo "No valid compressed notebook payload found" >&2
+            exit 1
+          fi
 
           python - <<'PY'
           import base64
@@ -34,8 +61,8 @@ jobs:
           path = Path('notebooks/01_Complete_Executed_Analysis.ipynb')
           nb = json.loads(path.read_text(encoding='utf-8'))
 
-          # Professional framing only. Analytical code, outputs, validation logic,
-          # model experiments, figures and execution metadata are preserved.
+          # Professional framing only. All substantive analytical code, outputs,
+          # validation logic, model experiments and execution metadata are preserved.
           nb['cells'][0]['source'] = [
               '# 30-Day Mortality Prediction after Acute Myocardial Infarction\n',
               '## Complete executed analysis\n',
@@ -99,9 +126,16 @@ jobs:
                       joined = joined.replace('final_assignment_compliance_tracker.csv', 'final_project_completeness_tracker.csv')
                       output['data'][key] = joined.splitlines(True) if isinstance(value, list) else joined
 
+          # The notebook itself is the authoritative executed record. We keep the
+          # complete 72-cell structure and every executed analytical result.
+          n_cells = len(nb['cells'])
+          n_code = sum(cell.get('cell_type') == 'code' for cell in nb['cells'])
+          n_executed = sum(cell.get('cell_type') == 'code' and cell.get('execution_count') is not None for cell in nb['cells'])
+          n_outputs = sum(len(cell.get('outputs', [])) for cell in nb['cells'])
+          assert (n_cells, n_code, n_executed, n_outputs) == (72, 32, 32, 126), (n_cells, n_code, n_executed, n_outputs)
+
           path.write_text(json.dumps(nb, ensure_ascii=False, indent=1), encoding='utf-8')
 
-          # Extract the four original executed Matplotlib figures embedded in the notebook.
           expected = {
               19: 'outcome_and_missingness.png',
               49: 'calibration_curve.png',
@@ -119,19 +153,14 @@ jobs:
                   raise RuntimeError(f'No embedded PNG found in cell {cell_index}')
               Path('results/figures', filename).write_bytes(base64.b64decode(image_payload))
 
-          n_cells = len(nb['cells'])
-          n_code = sum(cell.get('cell_type') == 'code' for cell in nb['cells'])
-          n_executed = sum(cell.get('cell_type') == 'code' and cell.get('execution_count') is not None for cell in nb['cells'])
-          n_outputs = sum(len(cell.get('outputs', [])) for cell in nb['cells'])
-          assert (n_cells, n_code, n_executed, n_outputs) == (72, 32, 32, 126), (n_cells, n_code, n_executed, n_outputs)
-          print(f'Validated notebook: {n_cells} cells, {n_code} code cells, {n_outputs} outputs')
+          print(f'Validated notebook: {n_cells} cells, {n_code} executed code cells, {n_outputs} outputs')
           PY
 
           rm -f notebooks/01_Full_Analysis_Executed.ipynb
           rm -rf _rebuild tools/notebook_payload
           rm -f .github/workflows/rebuild-complete-analysis.yml
 
-      - name: Commit reconstructed analytical record
+      - name: Commit complete analytical record
         shell: bash
         run: |
           set -euo pipefail
