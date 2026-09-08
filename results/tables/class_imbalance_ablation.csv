@@ -1,0 +1,4 @@
+Strategy,ROC-AUC,PR-AUC,Brier,Log loss
+No rebalancing,0.7881,0.2783,0.0556,0.2070
+Class weighting,0.7746,0.2712,0.1711,0.5138
+Random oversampling,0.7703,0.2700,0.1700,0.5108
