@@ -6,7 +6,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-import isds_option_a_pipeline as pipeline
+import mortality_prediction_pipeline as pipeline
 
 
 def _minimal_frame():
