@@ -20,7 +20,7 @@ from sklearn.metrics import average_precision_score, brier_score_loss, log_loss,
 from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold, StratifiedKFold
 from sklearn.pipeline import Pipeline
 
-from isds_option_a_pipeline import RANDOM_SEED, OUTCOME, load_and_clean, make_preprocessor
+from mortality_prediction_pipeline import RANDOM_SEED, OUTCOME, load_and_clean, make_preprocessor
 
 OUTER_SPLITS = 5
 OUTER_REPEATS = 5

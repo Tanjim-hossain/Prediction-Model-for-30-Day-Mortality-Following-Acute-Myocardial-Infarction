@@ -8,19 +8,19 @@
 
 **Clinical prediction · statistical learning · leakage-safe validation · reproducible machine learning**
 
-This repository presents an end-to-end prediction-modelling study for estimating **30-day mortality risk after acute myocardial infarction (AMI)**. The project was completed for the *Inference for Statistics and Data Science* course at Hasselt University and has been organised here as a professional, reproducible data-science portfolio project.
+This repository contains the complete development and internal validation of a model for estimating **30-day mortality risk after acute myocardial infarction (AMI)**. The analysis moves from raw-data auditing and deterministic cleaning through regularised statistical learning, tree-based machine-learning benchmarks, repeated nested cross-validation, probability calibration, uncertainty analysis, sensitivity checks, decision-curve analysis, model interpretation and final model packaging.
 
-> **Plain-language summary:** using routinely available variables in the supplied AMI dataset, the project estimates which patients are at higher risk of death within 30 days. The selected model is a regularised logistic regression. It shows useful internal discrimination and good probability calibration, but it has **not** been externally validated and is **not a clinical decision tool**.
+> **Plain-language summary:** the model uses 17 patient-level predictors to estimate the probability of death within 30 days after AMI. Ridge-penalised logistic regression provided the strongest overall internally validated performance, with ROC-AUC **0.7881**, Brier score **0.0556** and calibration slope **1.0580**. The model has not been externally validated and must not be used as a direct clinical decision tool.
 
 ## Project at a glance
 
-| Item | Value |
+| Item | Result |
 |---|---|
 | Prediction target | 30-day mortality after AMI |
 | Patients | **785** |
 | Deaths | **52 (6.62%)** |
 | Candidate predictors | **17** |
-| Final model | **Ridge-penalised logistic regression** |
+| Selected model | **Ridge-penalised logistic regression** |
 | Regularisation | **C = 0.1** |
 | Class rebalancing | **None** |
 | Internal validation | **5-fold stratified outer CV × 5 repeats** |
@@ -32,109 +32,126 @@ This repository presents an end-to-end prediction-modelling study for estimating
 | Log loss | **0.2070** |
 | Calibration intercept / slope | **0.1277 / 1.0580** |
 
-## What this project demonstrates
+## Complete computational record
 
-The repository exposes the complete modelling lifecycle rather than only the final estimator:
+The primary analytical artifact is the fully executed notebook:
 
-- raw-data schema and quality auditing;
-- deterministic, traceable data cleaning;
-- leakage-safe imputation, scaling and categorical encoding;
-- elastic-net regularisation for feature/complexity control;
-- ridge and standard logistic regression;
-- Random Forest and Gradient Boosting benchmarks;
-- repeated nested cross-validation and hyperparameter tuning;
-- class-weighting and random-oversampling ablations;
-- ROC-AUC, PR-AUC, Brier score and log-loss evaluation;
-- calibration intercept/slope and calibration diagnostics;
-- 2,000-sample bootstrap uncertainty;
-- sensitivity analyses for predictor representation and missingness;
-- threshold operating-characteristic trade-offs;
-- decision-curve analysis;
-- penalised coefficients and held-out permutation importance;
-- reusable Python source code, automated tests, CI and machine-readable results.
+**[`notebooks/01_Complete_Executed_Analysis.ipynb`](notebooks/01_Complete_Executed_Analysis.ipynb)**
 
-### Start here
+It is intentionally preserved as the complete computational record rather than reduced to a showcase notebook:
 
-- **Portfolio analysis notebook:** [`notebooks/01_Full_Analysis_Executed.ipynb`](notebooks/01_Full_Analysis_Executed.ipynb) — a GitHub-optimised presentation built directly from the supplied fully executed Kaggle notebook, retaining the full analytical narrative and key validated outputs.
-- **Clean reproducible notebook:** [`notebooks/02_Reproducible_Workflow.ipynb`](notebooks/02_Reproducible_Workflow.ipynb) — script-backed workflow for re-running the current pipeline.
-- **Reusable pipeline:** [`src/isds_option_a_pipeline.py`](src/isds_option_a_pipeline.py).
-- **Elastic-net development screen:** [`src/elastic_net_screen.py`](src/elastic_net_screen.py).
-- **Technical report:** [`docs/TECHNICAL_REPORT.md`](docs/TECHNICAL_REPORT.md).
-- **Machine-readable results:** [`results/tables/`](results/tables/).
+- **72 total cells**
+- **32 code cells**
+- **32/32 code cells executed**
+- **126 preserved outputs**
+- complete data audit and cleaning
+- Elastic Net development screen
+- ridge, standard logistic, Random Forest and Gradient Boosting models
+- class-weighting and random-oversampling experiments
+- repeated nested cross-validation and tuning outputs
+- calibration and 2,000-resample bootstrap uncertainty
+- sensitivity analyses
+- intercept-only reference model
+- threshold operating characteristics
+- original decision-curve analysis
+- outer-fold permutation importance
+- final pipeline serialization and model metadata
 
----
+The notebook retains its original Kaggle runtime paths and execution outputs because those are part of the executed record. For a fresh repository-based run, use [`notebooks/02_Reproducible_Workflow.ipynb`](notebooks/02_Reproducible_Workflow.ipynb) or the reusable source module [`src/mortality_prediction_pipeline.py`](src/mortality_prediction_pipeline.py).
 
-## Modelling workflow
+## End-to-end workflow
 
 ```mermaid
 flowchart LR
     A[Raw AMI data] --> B[Schema & quality audit]
-    B --> C[Auditable cleaning]
+    B --> C[Deterministic cleaning]
     C --> D[Leakage-safe preprocessing]
     D --> E[Repeated nested CV]
-    E --> F[Elastic-net development]
+    E --> F[Elastic Net development]
     F --> G[Candidate model comparison]
-    G --> H[Ridge selected]
+    G --> H[Ridge selection]
     H --> I[Calibration + bootstrap uncertainty]
     I --> J[Sensitivity + imbalance ablations]
     J --> K[Thresholds + decision curve]
-    K --> L[Coefficients + held-out permutation importance]
+    K --> L[Interpretation + model packaging]
 ```
 
-## Data audit and cleaning
+## 1. Data audit and exploratory analysis
 
-The supplied dataset contains 785 patients, 52 deaths and 17 candidate predictors. The raw audit found:
+The raw dataset contains 785 patients and 17 candidate predictors. Only 52 patients died within 30 days, producing an event prevalence of **6.62%**. This class imbalance makes raw accuracy a poor evaluation target and increases the risk of unstable single-split estimates.
+
+The data-quality audit identified:
 
 - **7** explicitly missing source cells;
-- **3** `Hypothension` values encoded as `Unknown`;
-- **14** `Killip_class` values encoded as `-1`;
+- **3** hypotension values encoded as `Unknown`;
+- **14** `Killip_class = -1` values;
 - **2** implausible height entries (`1.75` and `1690`);
 - **0** exact duplicate rows;
 - **0** duplicate predictor profiles.
 
-Cleaning was deliberately conservative. Invalid codes were recoded as missing, the height values were corrected to 175 cm and 169 cm, two misspelled headers were normalised, and **no patient was removed**. After recoding there were 24 missing predictor cells.
+![Outcome distribution and missingness](results/figures/outcome_and_missingness.png)
 
-![Outcome imbalance and missingness](docs/assets/data_audit.svg)
+### Deterministic cleaning
 
-Because only 52 events are available, overfitting and unstable single-split estimates are material risks. Raw accuracy is also uninformative for a 6.62% event rate. The project therefore emphasises regularisation, repeated internal validation and proper probability-scoring metrics.
-
-## Leakage-safe preprocessing
-
-Every transformation that can learn from data is fitted **inside the relevant training fold**.
-
-| Predictor group | Primary handling |
+| Raw issue | Processing decision |
 |---|---|
-| Continuous / ordinal | Median imputation + standardisation |
-| Binary | Most-frequent-value imputation |
-| Smoking | Most-frequent imputation + one-hot encoding |
-| Killip class | Ordinal in the primary analysis |
-| Oversampling | Training folds only, only in the ablation experiment |
+| `Hypothension` | rename to `Hypotension` |
+| `Hyperthension` | rename to `Hypertension` |
+| `Hypotension = Unknown` | recode as missing |
+| `Killip_class = -1` | recode as missing |
+| `Height = 1.75` | correct to 175 cm |
+| `Height = 1690` | correct to 169 cm |
 
-This prevents validation information from leaking into imputation statistics, scaling parameters, category encoding, resampling or hyperparameter selection.
+No patient was deleted. After recoding, **24 predictor cells** were missing.
 
-## Validation design
+## 2. Leakage-safe preprocessing
 
-The primary evaluation uses repeated nested cross-validation:
+All transformations that learn from data are fitted **inside the relevant training fold**.
 
-- **outer loop:** 5 stratified folds × 5 repeats = 25 held-out folds;
-- **inner loop:** 4 stratified folds;
-- **tuning criterion:** log loss;
-- **random seed:** 2026.
+| Predictor group | Processing |
+|---|---|
+| Continuous / ordinal | median imputation + standardisation |
+| Binary | most-frequent-value imputation |
+| Smoking | most-frequent imputation + one-hot encoding |
+| Killip class | ordinal in the primary analysis |
+| Random oversampling | training folds only, in the ablation experiment |
 
-Each patient receives one genuine out-of-fold probability in every outer repeat. The five OOF probabilities are averaged for the headline patient-level metrics, while repeat-level metrics are retained to assess stability.
+This prevents information from validation folds from leaking into imputation statistics, scaling parameters, category encoding, resampling or hyperparameter selection.
 
-## Elastic-net development and why ridge was selected
+## 3. Validation design
 
-The initial penalised logistic search used:
+The primary performance estimates come from **repeated nested stratified cross-validation**:
 
-- `C ∈ {0.01, 0.1, 1.0}`;
-- `l1_ratio ∈ {0, 0.25, 0.5, 0.75, 1}`.
+- outer loop: 5 folds × 5 repeats = **25 held-out folds**;
+- inner loop: **4 stratified folds**;
+- hyperparameter selection criterion: **log loss**;
+- primary random seed: **2026**.
 
-**20 of 25 outer folds selected `C=0.1` and `l1_ratio=0`**, i.e. the ridge/L2 endpoint. The initial elastic-net model achieved ROC-AUC **0.7878** and log loss **0.2071**. The analysis therefore retained all predictors with shrinkage rather than imposing a hard sparse subset and used a stable ridge specification for the matched final experiments.
+Each patient receives one genuine out-of-fold probability per outer repeat. The five probabilities are averaged for the headline patient-level estimates, while repeat-level metrics are retained to examine stability.
 
-## Candidate-model comparison
+## 4. Elastic Net development and ridge selection
 
-![Candidate model comparison](docs/assets/model_comparison.svg)
+The initial penalised logistic model tuned both regularisation strength and penalty mixture:
+
+- `C ∈ {0.01, 0.1, 1.0}`
+- `l1_ratio ∈ {0, 0.25, 0.5, 0.75, 1}`
+
+**20 of 25 outer folds selected `C = 0.1` and `l1_ratio = 0`**, corresponding to the ridge/L2 endpoint. The Elastic Net development model achieved approximately:
+
+| Metric | Value |
+|---|---:|
+| ROC-AUC | 0.7878 |
+| PR-AUC | 0.2790 |
+| Brier score | 0.0556 |
+| Log loss | 0.2071 |
+
+The result supported keeping the complete predictor set with shrinkage rather than forcing a sparse L1-selected subset.
+
+## 5. Candidate-model comparison
+
+The common validation framework evaluated ridge logistic regression, standard logistic regression, Random Forest, Gradient Boosting and an intercept-only prevalence reference.
+
+![Candidate-model comparison](docs/assets/model_comparison.svg)
 
 | Model | ROC-AUC | PR-AUC | Brier | Log loss |
 |---|---:|---:|---:|---:|
@@ -144,53 +161,62 @@ The initial penalised logistic search used:
 | Gradient Boosting | 0.7509 | 0.2379 | 0.0571 | 0.2160 |
 | Intercept-only reference | 0.4638 | 0.0631 | 0.0619 | 0.2438 |
 
-Ridge was retained for the best **overall** balance of discrimination, proper scoring-rule performance, calibration and repeated-validation stability. The decision was not based on ROC-AUC alone.
+Ridge was retained for its overall balance of discrimination, proper probability-scoring performance, calibration and repeated-validation stability. The selection was not based on ROC-AUC alone.
 
-## Class-imbalance ablation
+### Repeat-wise ridge stability
 
-Mortality prevalence is low, but imbalance correction was tested rather than assumed to be beneficial.
+- ROC-AUC: **0.7831 ± 0.0056**
+- PR-AUC: **0.2610 ± 0.0310**
+- Brier score: **0.0559 ± 0.0009**
+- log loss: **0.2084 ± 0.0026**
 
-| Ridge strategy | ROC-AUC | PR-AUC | Brier | Log loss |
+## 6. Class-imbalance ablation
+
+Low event prevalence does not automatically imply that rebalancing improves probability prediction, so three matched ridge strategies were compared.
+
+| Strategy | ROC-AUC | PR-AUC | Brier | Log loss |
 |---|---:|---:|---:|---:|
 | **No rebalancing** | **0.7881** | **0.2783** | **0.0556** | **0.2070** |
 | Class weighting | 0.7746 | 0.2712 | 0.1711 | 0.5138 |
 | Random oversampling | 0.7703 | 0.2700 | 0.1700 | 0.5108 |
 
-Both rebalancing approaches substantially worsened probability accuracy, so the final model preserves the natural class distribution.
+Both rebalancing approaches substantially degraded Brier score and log loss. The final model therefore preserves the natural class distribution.
 
-## Calibration and uncertainty
+## 7. Calibration and uncertainty
 
-The final ridge model achieved:
+The selected ridge model achieved:
 
-- calibration intercept **0.1277**;
-- calibration slope **1.0580**;
-- mean predicted mortality risk **6.63%**;
-- observed mortality **6.62%**.
+- calibration intercept: **0.1277**
+- calibration slope: **1.0580**
+- mean predicted risk: **6.63%**
+- observed mortality: **6.62%**
 
-![Calibration summary](docs/assets/calibration.svg)
+![Original calibration curve from the executed notebook](results/figures/calibration_curve.png)
 
-Uncertainty for the final OOF prediction set was estimated using **2,000 patient-level bootstrap resamples**.
+Metric uncertainty was assessed using **2,000 patient-level bootstrap resamples** of the final out-of-fold prediction set.
 
-| Metric | Estimate | 95% bootstrap CI |
+| Metric | Estimate | 95% bootstrap interval |
 |---|---:|---:|
 | ROC-AUC | **0.7881** | 0.7236–0.8478 |
 | PR-AUC | **0.2783** | 0.1741–0.4054 |
 | Brier score | **0.0556** | 0.0423–0.0690 |
 | Log loss | **0.2070** | 0.1658–0.2487 |
 
-## Sensitivity analyses
+## 8. Sensitivity analyses
+
+Two modelling assumptions were challenged explicitly.
 
 | Specification | ROC-AUC | PR-AUC | Brier | Log loss |
 |---|---:|---:|---:|---:|
 | Primary ridge | 0.7881 | 0.2783 | 0.0556 | 0.2070 |
-| Killip as categorical | 0.7786 | 0.2233 | 0.0567 | 0.2103 |
+| Killip class categorical | 0.7786 | 0.2233 | 0.0567 | 0.2103 |
 | Missing indicators added | 0.7889 | 0.2787 | 0.0556 | 0.2069 |
 
-The primary ordinal Killip specification was retained. Missingness indicators produced essentially no practical improvement, favouring the simpler fold-specific imputation strategy.
+The ordinal Killip representation was retained. Explicit missingness indicators provided essentially no practical improvement over the simpler fold-specific imputation strategy.
 
-## Threshold trade-offs
+## 9. Threshold operating characteristics
 
-No single threshold was optimised on the development data. Instead, several illustrative risk thresholds make the operating trade-off transparent.
+No single operating threshold was selected from the development data. Instead, several illustrative risk thresholds show the sensitivity-specificity trade-off.
 
 | Risk threshold | Sensitivity | Specificity | PPV | NPV | Flagged high risk |
 |---|---:|---:|---:|---:|---:|
@@ -199,17 +225,21 @@ No single threshold was optimised on the development data. Instead, several illu
 | 15% | 38.5% | 92.5% | 26.7% | 95.5% | 9.6% |
 | 20% | 23.1% | 95.6% | 27.3% | 94.6% | 5.6% |
 
-These thresholds are descriptive and are **not treatment recommendations**.
+These values are descriptive operating characteristics, not treatment recommendations.
 
-## Decision-curve analysis
+## 10. Decision-curve analysis
 
-![Decision curve](docs/assets/decision_curve.svg)
+The figure below is the **original decision-curve output preserved in the executed notebook**, not a redrawn substitute.
 
-Ridge net benefit at 5%, 10%, 15% and 20% thresholds was **0.0335, 0.0181, 0.0131 and 0.0051**. In the original explored grid the model had greater estimated net benefit than both reference strategies over approximately 1%–30%. This does not establish causal treatment benefit from using the model.
+![Original decision curve from the executed notebook](results/figures/decision_curve.png)
 
-## Model interpretation
+Ridge net benefit at 5%, 10%, 15% and 20% thresholds was **0.0335, 0.0181, 0.0131 and 0.0051**, respectively. Across the evaluated 1%–30% threshold grid, the model showed positive estimated net benefit relative to the reference strategies over the relevant range. This remains an internally evaluated prediction analysis and does not establish causal benefit from acting on the model.
 
-The final full-data ridge model is refitted only after model selection. Performance claims remain based on held-out OOF predictions.
+## 11. Model interpretation
+
+The final ridge pipeline is refitted on all 785 patients only after the modelling strategy has been selected. Performance claims remain based on held-out out-of-fold predictions.
+
+Largest absolute ridge coefficients include:
 
 | Predictor | Coefficient | Odds ratio |
 |---|---:|---:|
@@ -219,36 +249,50 @@ The final full-data ridge model is refitted only after model selection. Performa
 | Previous myocardial infarction | 0.3139 | 1.3687 |
 | Killip class | 0.3072 | 1.3596 |
 | Anterior infarct location | 0.2750 | 1.3165 |
+| Gender | -0.2190 | 0.8033 |
+| Weight | -0.2167 | 0.8052 |
 
-Continuous/ordinal predictors were standardised, so their odds ratios correspond approximately to a **one-standard-deviation increase**, not a raw one-unit increase.
+Continuous and ordinal variables were standardised, so their odds ratios correspond approximately to a **one-standard-deviation increase**, not a one-unit raw-scale change.
 
-Held-out raw-predictor permutation importance ranked **Age** first, followed by **Killip class**, **heart-rate indicator**, **time to relief**, and **weight**.
+Outer-fold raw-predictor permutation importance identified **Age** as the dominant contributor, followed by **Killip class**, **heart-rate indicator**, **time to relief** and **weight**.
 
-![Outer-fold permutation importance](docs/assets/permutation_importance.svg)
+![Original permutation-importance plot from the executed notebook](results/figures/permutation_importance.png)
 
-Importance and coefficients are predictive summaries, not causal effects.
+Coefficients, odds ratios and permutation importance are predictive summaries rather than causal effects.
+
+## 12. Model packaging and deployment readiness
+
+After model selection, the full preprocessing-plus-ridge pipeline is fitted on all available data and serialized with `joblib`. The executed notebook writes:
+
+```text
+final_ridge_prediction_pipeline.joblib
+final_ridge_model_metadata.json
+```
+
+This demonstrates **model packaging and inference readiness**. It does not claim a production API, web application, real-time clinical integration, monitoring system or regulatory validation. Generated model artifacts are intentionally reproducible rather than committed as trusted binaries; see [`models/README.md`](models/README.md) and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Repository structure
 
 ```text
 .
 ├── README.md
-├── ami_patient_data.csv
-├── requirements.txt
-├── Makefile
-├── pyproject.toml
+├── LICENSE
 ├── CITATION.cff
-├── .gitignore
-├── .github/workflows/ci.yml
+├── requirements.txt
+├── pyproject.toml
+├── Makefile
+├── ami_patient_data.csv
 ├── notebooks/
-│   ├── 01_Full_Analysis_Executed.ipynb
-│   └── 02_Reproducible_Workflow.ipynb
+│   ├── 01_Complete_Executed_Analysis.ipynb   # complete executed record
+│   └── 02_Reproducible_Workflow.ipynb       # clean script-backed rerun
 ├── src/
-│   ├── isds_option_a_pipeline.py
-│   └── elastic_net_screen.py
+│   ├── mortality_prediction_pipeline.py      # reusable end-to-end pipeline
+│   └── elastic_net_screen.py                 # Elastic Net development screen
 ├── results/
-│   ├── README.md
-│   └── tables/                         # curated validated outputs
+│   ├── figures/                              # original executed figures
+│   └── tables/                               # machine-readable summaries
+├── models/
+│   └── README.md                             # generated model-artifact guidance
 ├── docs/
 │   ├── TECHNICAL_REPORT.md
 │   ├── METHODOLOGY.md
@@ -256,10 +300,13 @@ Importance and coefficients are predictive summaries, not causal effects.
 │   ├── DATA_DICTIONARY.md
 │   ├── DATA_USAGE.md
 │   ├── MODEL_CARD.md
-│   ├── TRIPOD_MAPPING.md
-│   ├── LEGACY_ARTIFACTS.md
-│   └── assets/                         # current portfolio visuals
-└── tests/test_pipeline.py
+│   ├── DEPLOYMENT.md
+│   ├── REPRODUCIBILITY.md
+│   └── TRIPOD_MAPPING.md
+├── tools/
+│   └── audit_complete_notebook.py
+└── tests/
+    └── test_pipeline.py
 ```
 
 ## Reproduce the analysis
@@ -272,48 +319,58 @@ python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-# Full current pipeline
-python src/isds_option_a_pipeline.py --data ami_patient_data.csv --output outputs/current
+# Reusable full pipeline
+python src/mortality_prediction_pipeline.py \
+  --data ami_patient_data.csv \
+  --output outputs/current
 
-# Initial elastic-net development screen
-python src/elastic_net_screen.py --data ami_patient_data.csv --output outputs/elastic_net
+# Initial Elastic Net development screen
+python src/elastic_net_screen.py \
+  --data ami_patient_data.csv \
+  --output outputs/elastic_net
 
-# Quality checks
+# Unit tests
 pytest -q
+
+# Verify that the complete executed notebook has not been reduced
+python tools/audit_complete_notebook.py \
+  notebooks/01_Complete_Executed_Analysis.ipynb
 ```
 
-Convenience commands are also available through `make install`, `make test`, `make run` and `make elastic-net`.
+Convenience commands are also available through `make install`, `make test`, `make audit-notebook`, `make run` and `make elastic-net`.
 
 ## Technical stack
 
 **Python 3.12.13** · **NumPy 2.0.2** · **pandas 2.3.3** · **scikit-learn 1.6.1** · **matplotlib 3.10.0** · **seaborn 0.13.2** · **imbalanced-learn** · **joblib** · **Jupyter/Kaggle**
 
-## Skills demonstrated
-
-`EDA` · `data-quality auditing` · `missing-data handling` · `feature encoding` · `regularisation` · `logistic regression` · `Random Forest` · `Gradient Boosting` · `nested cross-validation` · `hyperparameter tuning` · `class-imbalance ablation` · `calibration` · `bootstrap uncertainty` · `decision-curve analysis` · `permutation importance` · `TRIPOD-oriented reporting` · `reproducible ML pipelines` · `testing/CI`
-
 ## Documentation
 
+- [Complete executed analysis](notebooks/01_Complete_Executed_Analysis.ipynb)
 - [Technical report](docs/TECHNICAL_REPORT.md)
 - [Methodology](docs/METHODOLOGY.md)
 - [Validated results](docs/RESULTS.md)
 - [Data dictionary](docs/DATA_DICTIONARY.md)
-- [Dataset provenance / reuse note](docs/DATA_USAGE.md)
+- [Dataset use and provenance](docs/DATA_USAGE.md)
 - [Model card](docs/MODEL_CARD.md)
-- [Assignment / TRIPOD traceability](docs/TRIPOD_MAPPING.md)
-- [Legacy-analysis note](docs/LEGACY_ARTIFACTS.md)
-- [Curated result tables](results/tables/)
+- [Model packaging and deployment readiness](docs/DEPLOYMENT.md)
+- [Reproducibility](docs/REPRODUCIBILITY.md)
+- [Prediction-model reporting traceability](docs/TRIPOD_MAPPING.md)
+- [Machine-readable results](results/)
+
+## What this work demonstrates
+
+`data-quality auditing` · `EDA` · `missing-data handling` · `feature encoding` · `regularisation` · `Elastic Net` · `ridge logistic regression` · `Random Forest` · `Gradient Boosting` · `nested cross-validation` · `hyperparameter tuning` · `class-imbalance ablation` · `calibration` · `bootstrap uncertainty` · `sensitivity analysis` · `decision-curve analysis` · `permutation importance` · `model serialization` · `reproducible ML pipelines` · `testing` · `CI`
 
 ## Limitations and responsible use
 
-This model was developed from a single supplied dataset with only 52 outcome events. All performance estimates are **internal-validation estimates**; there is no external, temporal or independent-site validation. Transportability to other hospitals, countries, treatment eras or patient populations is unknown.
+This model was developed from a single dataset with only 52 outcome events. All performance estimates are **internal-validation estimates**; there is no external, temporal or independent-site validation. Transportability to other hospitals, countries, treatment eras or patient populations is unknown.
 
 The analysis is predictive rather than causal. Coefficients, odds ratios and permutation importance should not be interpreted as treatment effects or biological mechanisms. Threshold and decision-curve analyses are exploratory and do not define a clinical policy.
 
 **Do not use this repository for direct patient-care decisions.**
 
+The software is released under the MIT License. Dataset reuse is addressed separately in [`docs/DATA_USAGE.md`](docs/DATA_USAGE.md); the software licence does not grant independent rights to the underlying data.
+
 ---
 
-**Author:** Tanjim Hossain  
-**Programme:** MSc Statistics and Data Science — Data Science, Hasselt University  
-**Course project:** Inference for Statistics and Data Science, Option A — Prediction Modelling
+**Author:** Tanjim Hossain

@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: "Hossain"
     given-names: "Tanjim"
-version: 1.0.0
+version: 1.1.0
 date-released: 2026-09-08
 repository-code: "https://github.com/Tanjim-hossain/ami-30day-mortality-prediction"
 keywords:
@@ -14,4 +14,5 @@ keywords:
   - ridge logistic regression
   - nested cross-validation
   - calibration
-license: "NOASSERTION"
+  - decision curve analysis
+license: MIT
