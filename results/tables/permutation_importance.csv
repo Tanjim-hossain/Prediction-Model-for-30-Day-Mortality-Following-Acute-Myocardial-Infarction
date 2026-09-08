@@ -1,0 +1,18 @@
+Predictor,Mean increase in held-out log loss
+Age,0.02714
+Killip_class,0.00881
+Heart_rate,0.00524
+Time_To_Relief,0.00268
+Weight,0.00259
+Previous_myocardial_infarction,0.00171
+Anterior_infarct_location,0.00134
+Gender,0.00100
+Height,0.00041
+Hypotension,0.00031
+Diabetes,0.00020
+Hypertension,0.00010
+Family_history_of_MI,0.00003
+Smoking,-0.00005
+Previous_angina_pectoris,-0.00010
+ST_elevation_leads,-0.00020
+Hypercholesterolaemia,-0.00030
