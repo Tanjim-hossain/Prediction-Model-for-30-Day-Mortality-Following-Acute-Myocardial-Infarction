@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - restore-complete-analysis
+    paths:
+      - '_payload/full_notebook/part_16.txt'
 
 permissions:
   contents: write
@@ -23,10 +25,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f _payload/full_notebook.xz
-          xz -t _payload/full_notebook.xz
           mkdir -p notebooks results/figures
-          xz -dc _payload/full_notebook.xz > notebooks/01_Complete_Executed_Analysis.ipynb
+          cat _payload/full_notebook/part_*.txt | base64 -d > /tmp/full_notebook.xz
+          xz -t /tmp/full_notebook.xz
+          xz -dc /tmp/full_notebook.xz > notebooks/01_Complete_Executed_Analysis.ipynb
 
           python - <<'PY'
           import base64
